@@ -1,13 +1,15 @@
 ## Commands
 
-### Build image
+### Hot to install
 
 ```shell
-$ docker build -t react-native .
+$ yarn
 ```
 
-### Running image
+### How to run
 
 ```shell
-$ docker run -p 8081:8081 -it react-native npm start
+$ docker-compose up
 ```
+
+Build application via `Xcode`
