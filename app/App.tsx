@@ -1,5 +1,12 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  FlatList
+} from 'react-native';
 import Realm from 'realm';
 
 const instructions = Platform.select({
@@ -11,36 +18,66 @@ const instructions = Platform.select({
 
 interface Props {}
 interface State {
+  inputText: string,
   realm: any
 }
 
 export default class App extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { realm: null };
+    this.state = { inputText: "edita aqui", realm: [] };
+
+    this.handleEnd = this.handleEnd.bind(this);
   }
 
   componentWillMount() {
     Realm.open({
-      schema: [{name: 'Dog', properties: {name: 'string'}}]
+      schema: [{ name: 'Task', properties: { text: 'string' } }]
     }).then(realm => {
-      realm.write(() => {
-        realm.create('Dog', {name: 'Rex'});
-      });
-      this.setState({ realm });
+      let tasks = realm.objects('Task');
+      this.setState({ realm: tasks });
     });
   }
 
+  handleEnd(event: any) {
+    const myText: string = event.nativeEvent.text
+    this.setState({
+      realm: [...this.state.realm, { text: myText }],
+      inputText: 'edita aqui'
+    });
+    Realm.open({
+      schema: [{ name: 'Task', properties: { text: 'string' } }]
+    }).then(realm => {
+      realm.write(() => {
+        realm.create('Task', { text: myText});
+      });
+    });
+
+  }
+
   render() {
-    const info: string = this.state.realm
-      ? `Number of dogs is: ${this.state.realm.objects('Dog').length}`
-      : 'Loading...';
+    const info: string = "oi"
     return (
       <View style={styles.container}>
         <Text style={styles.welcome}>A to React Native!</Text>
         <Text style={styles.welcome}>{info}</Text>
         <Text style={styles.instructions}>To get started, edit App.js</Text>
         <Text style={styles.instructions}>{instructions}</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={(text: string) =>
+            this.setState({ inputText: text })
+          }
+          value={this.state.inputText}
+          onEndEditing={this.handleEnd}
+        />
+        <FlatList
+          data={this.state.realm}
+          renderItem={({ item }) => (
+            <Text key={item.text}>{item.text}</Text>
+          )}
+          keyExtractor={(item, index) => index.toString()}
+        />
       </View>
     );
   }
@@ -62,5 +99,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     margin: 10,
     textAlign: 'center'
+  },
+  input: {
+    width: 100,
+    height: 30
   }
 });
